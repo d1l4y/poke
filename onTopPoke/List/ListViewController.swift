@@ -12,7 +12,7 @@ import UIKit
 /// Not required, but feel free to improve/reorganize the ViewController however you like.
 class ListViewController: UIViewController {
     /// TODO, replace with your own `RequestHandler`
-    private let requestHandler: RequestHandling = FakeRequestHandler()
+    private let requestHandler: RequestHandling = RequestHandler()
 
     private var species: [Species] = []
 
@@ -63,8 +63,11 @@ class ListViewController: UIViewController {
     }
 
     private func didFetchSpecies(response: SpeciesResponse) {
-        species = response.results
-        tableView.reloadData()
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.species = response.results
+            self.tableView.reloadData()
+        }
     }
 }
 
