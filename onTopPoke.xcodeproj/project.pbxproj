@@ -21,6 +21,7 @@
 		710FC31F2A02DE5700899EA2 /* ListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 710FC31E2A02DE5700899EA2 /* ListViewController.swift */; };
 		710FC3222A02DE7900899EA2 /* DetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 710FC3212A02DE7900899EA2 /* DetailsViewController.swift */; };
 		710FC3242A02E0B100899EA2 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 710FC3232A02E0B100899EA2 /* README.md */; };
+		AF801A0C2A0C2E8E008427D3 /* ListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF801A0B2A0C2E8E008427D3 /* ListViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +41,7 @@
 		710FC31E2A02DE5700899EA2 /* ListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListViewController.swift; sourceTree = "<group>"; };
 		710FC3212A02DE7900899EA2 /* DetailsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsViewController.swift; sourceTree = "<group>"; };
 		710FC3232A02E0B100899EA2 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		AF801A0B2A0C2E8E008427D3 /* ListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,6 +113,7 @@
 			children = (
 				710FC31C2A02DE4800899EA2 /* ListCell.swift */,
 				710FC31E2A02DE5700899EA2 /* ListViewController.swift */,
+				AF801A0B2A0C2E8E008427D3 /* ListViewModel.swift */,
 			);
 			path = List;
 			sourceTree = "<group>";
@@ -196,6 +199,7 @@
 			files = (
 				710FC3132A02DDC600899EA2 /* RequestHandling.swift in Sources */,
 				710FC31A2A02DE2C00899EA2 /* SpeciesDetails.swift in Sources */,
+				AF801A0C2A0C2E8E008427D3 /* ListViewModel.swift in Sources */,
 				710FC3182A02DE1F00899EA2 /* Species.swift in Sources */,
 				710FC3222A02DE7900899EA2 /* DetailsViewController.swift in Sources */,
 				710FC2FA2A02DBA000899EA2 /* AppDelegate.swift in Sources */,

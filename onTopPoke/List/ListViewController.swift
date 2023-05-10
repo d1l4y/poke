@@ -11,87 +11,93 @@ import UIKit
 ///
 /// Not required, but feel free to improve/reorganize the ViewController however you like.
 class ListViewController: UIViewController {
-    /// TODO, replace with your own `RequestHandler`
-    private let requestHandler: RequestHandling = RequestHandler()
 
-    private var species: [Species] = []
-
-    private let tableView: UITableView = {
-        let tableView = UITableView()
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.register(ListCell.self, forCellReuseIdentifier: ListCell.reuseIdentifier)
-        return tableView
+    var viewModel : ListViewModelProtocol?
+    
+    private lazy var collectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        layout.minimumLineSpacing = 10
+        layout.minimumInteritemSpacing = 10
+        layout.sectionInset = UIEdgeInsets(top: 5, left: 5, bottom:5, right: 5)
+        layout.itemSize =  CGSize(width: view.frame.width * 0.25, height: view.frame.height * 0.2)
+        
+        let collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: layout)
+        
+        collectionView.backgroundColor = .white
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.register(ListCollectionViewCell.self, forCellWithReuseIdentifier: "ListCollectionViewCell")
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        return collectionView
     }()
-
+    
+    required init(viewModel: ListViewModelProtocol) {
+        super.init(nibName: nil, bundle: nil)
+        self.viewModel = viewModel
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        title = "POKéMON"
+        title = "POKÉMON"
 
         setupViews()
-        fetchSpecies()
-    }
-
-    private func setupViews() {
-        view.addSubview(tableView)
-
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
-        ])
-
-        tableView.dataSource = self
-        tableView.delegate = self
-    }
-
-    private func fetchSpecies() {
-        do {
-            // TODO Consider pagination
-            try requestHandler.request(route: .getSpeciesList(limit: 20, offset: 0)) { [weak self] (result: Result<SpeciesResponse, Error>) -> Void in
-                switch result {
-                case .success(let response):
-                    self?.didFetchSpecies(response: response)
-                case .failure:
-                    print("TODO handle network failures")
-                }
-            }
-        } catch {
-            print("TODO handle request handling failures failures")
-        }
-    }
-
-    private func didFetchSpecies(response: SpeciesResponse) {
-        DispatchQueue.main.async { [weak self] in
+        viewModel?.fetchSpecies()
+        viewModel?.didFetchRequest = { [weak self] in
             guard let self else { return }
-            self.species = response.results
-            self.tableView.reloadData()
+            DispatchQueue.main.async {
+                self.collectionView.reloadData()
+            }
         }
+
+    }
+    
+    private func setupViews() {
+        view.addSubview(collectionView)
+        
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
+        ])
     }
 }
 
-extension ListViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return species.count
-    }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: ListCell.reuseIdentifier, for: indexPath)
-        cell.textLabel?.text = species[indexPath.row].name
-
-        // TODO Fetch the image remotely, based on the Pokémon ID ("list index + 1")
-        // TODO This requires `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{species_id}.png`
-        cell.imageView?.image = UIImage(named: "PlaceholderImage")
-        return cell
-    }
-}
-
-extension ListViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-
-        let viewController = DetailsViewController(species: species[indexPath.row])
+extension ListViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let currentSpecies = viewModel?.getCurrentSpecies(at: indexPath.row) else {
+            return
+        }
+        //TODO: config images
+        let viewController = DetailsViewController(species: currentSpecies)
         navigationController?.pushViewController(viewController, animated: true)
     }
+    
+}
+
+extension ListViewController: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        guard let speciesList = viewModel?.getSpeciesList() else { return 0 }
+        return speciesList.count
+
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ListCollectionViewCell", for: indexPath) as? ListCollectionViewCell,
+              let currentSpecies = viewModel?.getCurrentSpecies(at: indexPath.row) else {
+            return UICollectionViewCell()
+        }
+        
+        // TODO Fetch the image remotely, based on the Pokémon ID ("list index + 1")
+        // TODO This requires `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{species_id}.png`
+        cell.setup(text: currentSpecies.name)
+        return cell
+    }
+    
 }
