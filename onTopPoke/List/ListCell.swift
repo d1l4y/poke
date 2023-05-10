@@ -4,7 +4,6 @@ class ListCollectionViewCell: UICollectionViewCell {
     static let reuseIdentifier = "ListCollectionViewCell"
 
     // MARK: - Properties
-    
     public lazy var imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
@@ -23,7 +22,6 @@ class ListCollectionViewCell: UICollectionViewCell {
     }()
     
     // MARK: - Initializers
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
@@ -34,7 +32,6 @@ class ListCollectionViewCell: UICollectionViewCell {
     }
 
     //MARK: - Setup
-
     private func setupUI(){
         contentView.addSubview(imageView)
         contentView.addSubview(label)

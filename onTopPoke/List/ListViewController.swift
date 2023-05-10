@@ -11,9 +11,9 @@ import UIKit
 ///
 /// Not required, but feel free to improve/reorganize the ViewController however you like.
 class ListViewController: UIViewController {
-
     var viewModel : ListViewModelProtocol?
     
+    // MARK: - Properties
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
@@ -32,6 +32,7 @@ class ListViewController: UIViewController {
         return collectionView
     }()
     
+    //MARK: - Life Cycle
     required init(viewModel: ListViewModelProtocol) {
         super.init(nibName: nil, bundle: nil)
         self.viewModel = viewModel
@@ -57,6 +58,7 @@ class ListViewController: UIViewController {
 
     }
     
+    //MARK: - Setup
     private func setupViews() {
         view.addSubview(collectionView)
         
@@ -69,18 +71,24 @@ class ListViewController: UIViewController {
     }
 }
 
+// MARK: - UICollectionViewDelegate
 extension ListViewController: UICollectionViewDelegate {
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let currentSpecies = viewModel?.getCurrentSpecies(at: indexPath.row) else {
             return
         }
         //TODO: config images
-        let viewController = DetailsViewController(species: currentSpecies)
+        
+        let placeholderImage = UIImage(named: "Image")
+        let viewModel: DetailsViewModelProtocol = DetailsViewModel(species: currentSpecies, speciesImage: placeholderImage!)
+        let viewController = DetailsViewController(viewModel: viewModel)
         navigationController?.pushViewController(viewController, animated: true)
     }
     
 }
 
+// MARK: - UICollectionViewDataSource
 extension ListViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         guard let speciesList = viewModel?.getSpeciesList() else { return 0 }
@@ -96,6 +104,7 @@ extension ListViewController: UICollectionViewDataSource {
         
         // TODO Fetch the image remotely, based on the Pokémon ID ("list index + 1")
         // TODO This requires `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{species_id}.png`
+        
         cell.setup(text: currentSpecies.name)
         return cell
     }

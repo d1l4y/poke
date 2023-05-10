@@ -15,9 +15,10 @@ protocol ListViewModelProtocol {
 }
 
 class ListViewModel: ListViewModelProtocol {
+    var didFetchRequest: (() -> Void)?
+
     private let requestHandler: RequestHandling = RequestHandler()
     private var species: [Species] = []
-    var didFetchRequest: (() -> Void)?
     
     func getSpeciesList() -> [Species] {
         return species

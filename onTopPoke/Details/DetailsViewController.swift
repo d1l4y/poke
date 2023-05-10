@@ -6,20 +6,35 @@ import UIKit
 /// The evolution chain url can be fetched using the endpoint `APIRouter.getSpecies(URL)` (returns type `SpeciesDetails`), and the evolution chain details through `APIRouter.getEvolutionChain(URL)` (returns type `EvolutionChainDetails`).
 /// Requires a working `RequestHandler`
 class DetailsViewController: UIViewController {
-    let species: Species
-
-    let imageView: UIImageView = {
+    var viewModel: DetailsViewModelProtocol?
+    
+    // MARK: - Properties
+    private let tableView: UITableView = {
+        let tableView = UITableView()
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.separatorStyle = .none
+        tableView.register(EvolutionChainTableViewCell.self, forCellReuseIdentifier: EvolutionChainTableViewCell.reuseIdentifier)
+        return tableView
+    }()
+    
+    private lazy var headerView: UIView = {
+        let headerView = UIView()
+        return headerView
+    }()
+    
+    private lazy var imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage(named: "PlaceholderImage")
+        imageView.clipsToBounds = true
+        imageView.image = UIImage(named: "Image")
         return imageView
     }()
 
-    init(species: Species) {
-        self.species = species
-
+    //MARK: - Life Cycle
+    init(viewModel: DetailsViewModelProtocol) {
         super.init(nibName: nil, bundle: nil)
+        self.viewModel = viewModel
     }
 
     required init?(coder: NSCoder) {
@@ -30,26 +45,75 @@ class DetailsViewController: UIViewController {
         super.viewDidLoad()
 
         view.backgroundColor = .white
-        title = species.name
-
+        title = viewModel?.getSpeciesName()
+        viewModel?.fetchDetails()
+        viewModel?.didFetchRequest = { [weak self] in
+            guard let self else { return }
+            self.reloadData()
+        }
         setupViews()
-        loadDetails()
+        tableView.register(EvolutionChainTableViewCell.self, forCellReuseIdentifier: "cell")
     }
-
+    
+    //MARK: - Setup
     private func setupViews() {
-        // TODO Feel free to set up the screen any way you like
+        view.addSubview(tableView)
+        tableView.delegate = self
+        tableView.dataSource = self
+        NSLayoutConstraint.activate([
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+        
+        headerView.frame = CGRect(x: 0, y: 0, width: tableView.frame.width, height: 150)
+        headerView.addSubview(imageView)
 
-        view.addSubview(imageView)
+        imageView.frame = CGRect(x: 0, y: 0, width: headerView.frame.width * 0.8, height: headerView.frame.height * 0.8)
 
         NSLayoutConstraint.activate([
-            imageView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
-            imageView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
-            imageView.widthAnchor.constraint(equalToConstant: 150),
-            imageView.heightAnchor.constraint(equalToConstant: 150)
+            imageView.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            imageView.centerYAnchor.constraint(equalTo: headerView.centerYAnchor)
         ])
     }
 
-    private func loadDetails() {
-        // TODO fetch details using your request handler, using the APIRouter endpoints
+    private func reloadData() {
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
     }
 }
+
+extension DetailsViewController: UITableViewDelegate, UITableViewDataSource {
+    // MARK: - UITableViewDataSource
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 150
+    }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        return headerView
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        guard let evolutionChainSize = viewModel?.getChainLinkSize() else { return 0
+        }
+        return evolutionChainSize
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? EvolutionChainTableViewCell,
+              let chainLink = viewModel?.getCurrentChain(at: indexPath.row) else { return UITableViewCell() }
+
+        cell.setup(name: chainLink.species.name,
+                   arrowShouldAppear: chainLink.evolvesTo.isEmpty)
+        
+        return cell
+    }
+}
+
