@@ -15,7 +15,7 @@ class RequestHandler: RequestHandling {
         }
     }
     
-    func parseData<T>(data: Data, route: APIRoute) -> T {
+    private func parseData<T>(data: Data, route: APIRoute) -> T {
         switch route {
         case .getSpecies(_):
             return parseGetSpeciesData(data: data) as! T
@@ -27,6 +27,7 @@ class RequestHandler: RequestHandling {
             return parseImageFromData(data: data) as! T
         }
     }
+    
     func parseImageFromData(data: Data) -> UIImage? {
         guard let image = UIImage(data: data) else {
             print("Invalid response or data")
@@ -35,7 +36,7 @@ class RequestHandler: RequestHandling {
         return image
     }
                                
-    func parseSpeciesListData(data: Data) -> SpeciesResponse? {
+    private func parseSpeciesListData(data: Data) -> SpeciesResponse? {
         let decoder = JSONDecoder()
         do {
             let items = try decoder.decode(SpeciesResponse.self, from: data)
@@ -47,7 +48,7 @@ class RequestHandler: RequestHandling {
         }
     }
     
-    func parseGetSpeciesData(data: Data) -> SpeciesDetails? {
+    private func parseGetSpeciesData(data: Data) -> SpeciesDetails? {
         do {
             let decoder = JSONDecoder()
             decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -60,7 +61,7 @@ class RequestHandler: RequestHandling {
         }
     }
     
-    func parseEvolutionChainData(data: Data) -> EvolutionChainDetails? {
+    private func parseEvolutionChainData(data: Data) -> EvolutionChainDetails? {
         do {
             let decoder = JSONDecoder()
             decoder.keyDecodingStrategy = .convertFromSnakeCase

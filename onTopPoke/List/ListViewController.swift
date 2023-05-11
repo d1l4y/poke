@@ -106,6 +106,10 @@ extension ListViewController: UICollectionViewDataSource {
         // TODO This requires `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{species_id}.png`
         
         cell.setup(text: currentSpecies.name)
+        
+        if let lastElement = viewModel?.getSpeciesList().count, indexPath.row == lastElement - 1 {
+            viewModel?.fetchSpecies()
+        }
         return cell
     }
     
