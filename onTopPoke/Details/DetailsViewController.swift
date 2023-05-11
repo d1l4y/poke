@@ -115,11 +115,18 @@ extension DetailsViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: EvolutionChainTableViewCell.reuseIdentifier, for: indexPath) as? EvolutionChainTableViewCell,
               let chainLink = viewModel?.getCurrentChain(at: indexPath.row) else { return UITableViewCell() }
-
+        cell.selectionStyle = .none 
         cell.setup(name: chainLink.species.name,
                    arrowShouldAppear: chainLink.evolvesTo.isEmpty)
         
         return cell
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let offsetY = scrollView.contentOffset.y
+        let headerHeight = headerView.bounds.height
+        let alpha = 1 -  offsetY / headerHeight
+        headerView.alpha = max(0, alpha)
     }
 }
 

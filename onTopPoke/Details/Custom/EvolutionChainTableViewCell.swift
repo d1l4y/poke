@@ -13,8 +13,9 @@ class EvolutionChainTableViewCell: UITableViewCell {
     // MARK: - Properties
     let nameLabel : UILabel = {
         let label = UILabel()
-        label.textAlignment = .left
+        label.textAlignment = .center
         label.numberOfLines = 0
+        label.font = UIFont.systemFont(ofSize: 24, weight: .bold)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -23,7 +24,9 @@ class EvolutionChainTableViewCell: UITableViewCell {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.image =  UIImage(systemName: "arrow.down")
+        let arrowImage =  UIImage(systemName: "arrow.down.circle.fill")?
+            .withConfiguration(UIImage.SymbolConfiguration(weight: .bold))
+        imageView.image = arrowImage
         return imageView
     }()
     
@@ -43,14 +46,14 @@ class EvolutionChainTableViewCell: UITableViewCell {
         contentView.addSubview(arrowImageView)
         
         NSLayoutConstraint.activate([
-            arrowImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
-            arrowImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            arrowImageView.widthAnchor.constraint(equalToConstant: 20),
-            arrowImageView.heightAnchor.constraint(equalTo: arrowImageView.widthAnchor),
+            nameLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
             
-            nameLabel.leadingAnchor.constraint(equalTo: arrowImageView.trailingAnchor, constant: 10),
-            nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
-            nameLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+            arrowImageView.widthAnchor.constraint(equalToConstant: 25),
+            arrowImageView.heightAnchor.constraint(equalTo: arrowImageView.widthAnchor),
+            arrowImageView.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 10),
+            arrowImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5),
+            arrowImageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
         ])
     }
     
