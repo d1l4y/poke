@@ -48,12 +48,12 @@ class ListCollectionViewCell: UICollectionViewCell {
         ])
     }
     
-    
-    func setup(text: String, image: UIImage? = nil) {
+    func setupText(_ text: String) {
         label.text = text
-        if let image {
-            imageView.image = image
-        }
+    }
+    
+    func setupImage(_ image: UIImage) {
+        imageView.image = image
     }
 }
 

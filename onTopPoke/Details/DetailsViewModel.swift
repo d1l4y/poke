@@ -9,29 +9,30 @@ import UIKit
 
 protocol DetailsViewModelProtocol {
     var didFetchRequest: (() -> Void)? { get set }
-    var speciesImage: UIImage { get }
     
     func getSpeciesName() -> String
     func getEvolutionChain() -> EvolutionChainDetails?
     func getChainLinkSize() -> Int
+    func getSpeciesImage() -> UIImage
     func fetchDetails()
     func getCurrentChain(at index: Int) -> ChainLink?
 }
 
 class DetailsViewModel: DetailsViewModelProtocol {
     var didFetchRequest: (() -> Void)?
-    let speciesImage: UIImage
-
+    
+    private let speciesImage: UIImage
     private let species: Species
     private var details: SpeciesDetails?
     private var evolutionChain: EvolutionChainDetails?
-    private let requestHandler: RequestHandling = RequestHandler()
+    private let requestHandler: RequestHandling
 
-    init(species: Species, speciesImage: UIImage, details: SpeciesDetails? = nil, chainLink: EvolutionChainDetails? = nil) {
+    init(species: Species,
+         speciesImage: UIImage,
+         requestHandler: RequestHandling) {
         self.species = species
-        self.details = details
-        self.evolutionChain = chainLink
         self.speciesImage = speciesImage
+        self.requestHandler = requestHandler
     }
         
     func getSpeciesName() -> String {
@@ -62,6 +63,10 @@ class DetailsViewModel: DetailsViewModelProtocol {
             count += countChainElements(chain: evolveTo)
         }
         return count
+    }
+    
+    func getSpeciesImage() -> UIImage {
+        return speciesImage
     }
     
     func fetchDetails() {

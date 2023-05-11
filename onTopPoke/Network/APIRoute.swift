@@ -8,10 +8,8 @@ enum APIRoute {
     case getSpeciesList(limit: Int, offset: Int)
     case getSpecies(URL)
     case getEvolutionChain(URL)
-    case getSpeciesImage(index: Int)
 
     private var baseURLString: String { "https://pokeapi.co/api/v2/" }
-    private var baseImagesURLString: String { "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" }
 
     private var url: URL? {
         switch self {
@@ -20,8 +18,6 @@ enum APIRoute {
             return url
         case .getSpeciesList:
             return URL(string: baseURLString + "pokemon-species")
-        case .getSpeciesImage(let id):
-            return URL(string: baseImagesURLString + "\(id).png")
         }
     }
 

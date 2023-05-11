@@ -27,7 +27,7 @@ class ListViewController: UIViewController {
         collectionView.backgroundColor = .white
         collectionView.dataSource = self
         collectionView.delegate = self
-        collectionView.register(ListCollectionViewCell.self, forCellWithReuseIdentifier: "ListCollectionViewCell")
+        collectionView.register(ListCollectionViewCell.self, forCellWithReuseIdentifier: ListCollectionViewCell.reuseIdentifier)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         return collectionView
     }()
@@ -78,12 +78,16 @@ extension ListViewController: UICollectionViewDelegate {
         guard let currentSpecies = viewModel?.getCurrentSpecies(at: indexPath.row) else {
             return
         }
-        //TODO: config images
-        
-        let placeholderImage = UIImage(named: "Image")
-        let viewModel: DetailsViewModelProtocol = DetailsViewModel(species: currentSpecies, speciesImage: placeholderImage!)
-        let viewController = DetailsViewController(viewModel: viewModel)
-        navigationController?.pushViewController(viewController, animated: true)
+        viewModel?.fetchImage(at: indexPath.row) {[weak self] image in
+            if let self = self, let image {
+                let requestHandler: RequestHandling = RequestHandler()
+                let viewModel: DetailsViewModelProtocol = DetailsViewModel(species: currentSpecies,
+                                                                           speciesImage: image,
+                                                                           requestHandler: requestHandler)
+                let viewController = DetailsViewController(viewModel: viewModel)
+                self.navigationController?.pushViewController(viewController, animated: true)
+            }
+        }
     }
     
 }
@@ -101,11 +105,12 @@ extension ListViewController: UICollectionViewDataSource {
               let currentSpecies = viewModel?.getCurrentSpecies(at: indexPath.row) else {
             return UICollectionViewCell()
         }
-        
-        // TODO Fetch the image remotely, based on the Pokémon ID ("list index + 1")
-        // TODO This requires `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{species_id}.png`
-        
-        cell.setup(text: currentSpecies.name)
+        cell.setupText(currentSpecies.name)
+        viewModel?.fetchImage(at: indexPath.row) { image in
+            if let image {
+                cell.setupImage(image)
+            }
+        }
         
         if let lastElement = viewModel?.getSpeciesList().count, indexPath.row == lastElement - 1 {
             viewModel?.fetchSpecies()

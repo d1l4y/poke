@@ -23,17 +23,7 @@ class RequestHandler: RequestHandling {
             return parseEvolutionChainData(data: data) as! T
         case .getSpeciesList(_,_):
             return parseSpeciesListData(data: data) as! T
-        case .getSpeciesImage(_):
-            return parseImageFromData(data: data) as! T
         }
-    }
-    
-    func parseImageFromData(data: Data) -> UIImage? {
-        guard let image = UIImage(data: data) else {
-            print("Invalid response or data")
-            return nil
-        }
-        return image
     }
                                
     private func parseSpeciesListData(data: Data) -> SpeciesResponse? {

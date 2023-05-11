@@ -43,16 +43,16 @@ class DetailsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        view.backgroundColor = .white
-        title = viewModel?.getSpeciesName()
+        
         viewModel?.fetchDetails()
         viewModel?.didFetchRequest = { [weak self] in
             guard let self else { return }
             self.reloadData()
         }
+        
         setupViews()
-        tableView.register(EvolutionChainTableViewCell.self, forCellReuseIdentifier: "cell")
+        setupUI()
+        
     }
     
     //MARK: - Setup
@@ -78,6 +78,12 @@ class DetailsViewController: UIViewController {
         ])
     }
 
+    func setupUI() {
+        view.backgroundColor = .white
+        title = viewModel?.getSpeciesName()
+        imageView.image = viewModel?.getSpeciesImage()
+    }
+    
     private func reloadData() {
         DispatchQueue.main.async {
             self.tableView.reloadData()
@@ -107,7 +113,7 @@ extension DetailsViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? EvolutionChainTableViewCell,
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: EvolutionChainTableViewCell.reuseIdentifier, for: indexPath) as? EvolutionChainTableViewCell,
               let chainLink = viewModel?.getCurrentChain(at: indexPath.row) else { return UITableViewCell() }
 
         cell.setup(name: chainLink.species.name,

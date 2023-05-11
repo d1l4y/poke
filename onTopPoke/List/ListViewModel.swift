@@ -12,16 +12,25 @@ protocol ListViewModelProtocol {
     func getSpeciesList() -> [Species]
     func getCurrentSpecies(at index: Int) -> Species
     func fetchSpecies()
+    func fetchImage(at index: Int, completion: @escaping (UIImage?) -> Void)
+
 }
 
 class ListViewModel: ListViewModelProtocol {
     var didFetchRequest: (() -> Void)?
+    
+    private let requestHandler: RequestHandling
+    private let imageHandler: ImageHandling
 
-    private let requestHandler: RequestHandling = RequestHandler()
     private var species: [Species] = []
     private var limit: Int = 25
     private var offset: Int = 0
     private var shouldFetch: Bool = true
+    
+    init(requestHandler: RequestHandling, imageHandler: ImageHandling) {
+        self.requestHandler = requestHandler
+        self.imageHandler = imageHandler
+    }
     
     func getSpeciesList() -> [Species] {
         return species
@@ -54,6 +63,20 @@ class ListViewModel: ListViewModelProtocol {
         self.offset += self.limit
         if self.offset > count {
             shouldFetch = false
+        }
+    }
+    
+    func fetchImage(at index: Int, completion: @escaping (UIImage?) -> Void) {
+        let id = index + 1
+        
+        imageHandler.getImage(for: id) { result in
+            switch result {
+            case .success(let image):
+                completion(image)
+            case .failure(_):
+                let placeholder = UIImage(named: "Image")
+                completion(placeholder)
+            }
         }
     }
 }
