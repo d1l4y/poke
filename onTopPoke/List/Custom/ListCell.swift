@@ -53,7 +53,10 @@ class ListCollectionViewCell: UICollectionViewCell {
     }
     
     func setupImage(_ image: UIImage) {
-        imageView.image = image
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.imageView.image = image
+        }
     }
 }
 

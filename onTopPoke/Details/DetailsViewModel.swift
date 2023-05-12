@@ -9,6 +9,7 @@ import UIKit
 
 protocol DetailsViewModelProtocol {
     var didFetchRequest: (() -> Void)? { get set }
+    var showAlert: ((String) -> Void)? { get set }
     
     func getSpeciesName() -> String
     func getEvolutionChain() -> EvolutionChainDetails?
@@ -20,7 +21,8 @@ protocol DetailsViewModelProtocol {
 
 class DetailsViewModel: DetailsViewModelProtocol {
     var didFetchRequest: (() -> Void)?
-    
+    var showAlert: ((String) -> Void)?
+
     private let speciesImage: UIImage
     private let species: Species
     private var details: SpeciesDetails?
@@ -46,10 +48,20 @@ class DetailsViewModel: DetailsViewModelProtocol {
     func getCurrentChain(at index: Int) -> ChainLink? {
         guard var currentChainLink = evolutionChain?.chain else { return nil }
         for _ in 0..<index {
-            guard let nextChainLink = currentChainLink.evolvesTo.first else { return nil }
+            guard let nextChainLink = checkEvolution(chain: currentChainLink) else { return nil }
             currentChainLink = nextChainLink
         }
         return currentChainLink
+    }
+    
+    func checkEvolution(chain: ChainLink) -> ChainLink? {
+        if let currentChain = chain.evolvesTo.first(where: { link in link.species.name == species.name }) {
+            return currentChain
+        }
+        if let currentChain = chain.evolvesTo.first {
+            return currentChain
+        }
+        return nil
     }
     
     func getChainLinkSize() -> Int {
@@ -70,34 +82,37 @@ class DetailsViewModel: DetailsViewModelProtocol {
     }
     
     func fetchDetails() {
-        do {
-            try requestHandler.request(route: .getSpecies(species.url)) { [weak self] (result: Result<SpeciesDetails, Error>) -> Void in
-                switch result {
-                case .success(let response):
-                    self?.details = response
-                    self?.fetchEvolutionChain()
-                case .failure:
-                    print("TODO handle network failures")
+        requestHandler.request(route: .getSpecies(species.url)) { [weak self] (result: Result<SpeciesDetails, Error>) -> Void in
+            guard let self else { return }
+            switch result {
+            case .success(let response):
+                self.details = response
+                self.fetchEvolutionChain()
+            case .failure(let error):
+                if let requestError = error as? RequestError {
+                    self.showAlert?(requestError.asMessage())
+                } else {
+                    self.showAlert?(error.localizedDescription)
                 }
             }
-        } catch {
-            print("TODO handle request handling failures failures")
         }
+        
     }
     
     func fetchEvolutionChain() {
-        do {
-            try requestHandler.request(route: .getEvolutionChain(details!.evolutionChain.url)) { [weak self] (result: Result<EvolutionChainDetails, Error>) -> Void in
-                switch result {
-                case .success(let response):
-                    self?.evolutionChain = response
-                    self?.didFetchRequest!()
-                case .failure:
-                    print("TODO handle network failures")
+        requestHandler.request(route: .getEvolutionChain(details!.evolutionChain.url)) { [weak self] (result: Result<EvolutionChainDetails, Error>) -> Void in
+            guard let self else { return }
+            switch result {
+            case .success(let response):
+                self.evolutionChain = response
+                self.didFetchRequest!()
+            case .failure(let error):
+                if let requestError = error as? RequestError {
+                    self.showAlert?(requestError.asMessage())
+                } else {
+                    self.showAlert?(error.localizedDescription)
                 }
             }
-        } catch {
-            print("TODO handle request handling failures failures")
         }
     }
 

@@ -7,25 +7,16 @@
 
 import UIKit
 
-enum ImageHandlerError: Error {
-    case urlError
-    case decodingDataError
-    case responseError
-}
-
-protocol ImageHandling {
-    func getImage(for id: Int, completion: @escaping (Result<UIImage, ImageHandlerError>) -> Void)
-}
-
 class ImageHandler: ImageHandling {
     private let cache = NSCache<NSString, UIImage>()
     private var baseImagesURLString: String { "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" }
     
     init() {}
     
-    func getImage(for id: Int, completion: @escaping (Result<UIImage, ImageHandlerError>) -> Void) {
+    func getImage(for id: Int, completion: @escaping (Result<UIImage, Error>) -> Void) {
         guard let imageUrl = getUrlFromId(id: id) else {
-            completion(.failure(ImageHandlerError.urlError))
+            let requestError = RequestError(type: .unknownError)
+            completion(.failure(requestError))
             return
         }
         
@@ -38,16 +29,21 @@ class ImageHandler: ImageHandling {
         }
         
         URLSession.shared.dataTask(with: imageRequest) { (data, response, error) in
-            guard let data = data, error == nil else {
-                completion(.failure(ImageHandlerError.responseError))
-                return
+            if let error = error {
+                let requestError = RequestError(type: .otherError(message: error.localizedDescription))
+                completion(.failure(requestError))
             }
-            if let image = UIImage(data: data) {
+            
+            if let data = data, let image = UIImage(data: data ) {
                 self.cache.setObject(image, forKey: key as NSString)
                 DispatchQueue.main.async {
                     completion(.success(image))
                 }
+            } else {
+                let requestError = RequestError(type: .decodingError)
+                completion(.failure(requestError))
             }
+            
         }.resume()
     }
     

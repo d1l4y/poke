@@ -1,10 +1,5 @@
 import UIKit
 
-/// Details view showing the evolution chain of a Pokémon (WIP)
-///
-/// It now only shows a placeholder image, make it so that it also shows the evolution chain of the selected Pokémon, in whatever way you think works best.
-/// The evolution chain url can be fetched using the endpoint `APIRouter.getSpecies(URL)` (returns type `SpeciesDetails`), and the evolution chain details through `APIRouter.getEvolutionChain(URL)` (returns type `EvolutionChainDetails`).
-/// Requires a working `RequestHandler`
 class DetailsViewController: UIViewController {
     var viewModel: DetailsViewModelProtocol?
     
@@ -44,12 +39,16 @@ class DetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        viewModel?.fetchDetails()
         viewModel?.didFetchRequest = { [weak self] in
             guard let self else { return }
             self.reloadData()
         }
-        
+        viewModel?.showAlert = { [weak self] message in
+            guard let self else { return }
+            self.showAlert(message: message)
+        }
+        viewModel?.fetchDetails()
+
         setupViews()
         setupUI()
         
@@ -87,6 +86,14 @@ class DetailsViewController: UIViewController {
     private func reloadData() {
         DispatchQueue.main.async {
             self.tableView.reloadData()
+        }
+    }
+    
+    private func showAlert(message: String) {
+        let alertController = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        DispatchQueue.main.async {
+            self.present(alertController, animated: true, completion: nil)
         }
     }
 }

@@ -1,15 +1,5 @@
 import UIKit
 
-/// Main view showing the list of Pokémon
-///
-/// The tableview is setup already. but fetching from a fake request handler, returning fake Pokémon, and showing a local image
-/// Goal:
-/// - Use your own `RequestHandler` to fetch Pokémon from the backend
-/// - Display the pokemon name and image (fetched remotely)
-/// - Implement pagination to simulate infinite scrolling
-/// - Error handling
-///
-/// Not required, but feel free to improve/reorganize the ViewController however you like.
 class ListViewController: UIViewController {
     var viewModel : ListViewModelProtocol?
     
@@ -44,18 +34,22 @@ class ListViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
-        title = "POKÉMON"
-
+        
         setupViews()
-        viewModel?.fetchSpecies()
+        setupUI()
+        
         viewModel?.didFetchRequest = { [weak self] in
             guard let self else { return }
             DispatchQueue.main.async {
                 self.collectionView.reloadData()
             }
         }
-
+        viewModel?.showAlert = { [weak self] message in
+            guard let self else { return }
+            self.showAlert(message: message)
+        }
+        viewModel?.fetchSpecies()
+        
     }
     
     //MARK: - Setup
@@ -68,6 +62,23 @@ class ListViewController: UIViewController {
             collectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
         ])
+    }
+    
+    private func setupUI(){
+        view.backgroundColor = .white
+        title = "POKÉMON"
+    }
+    
+    private func showAlert(message: String) {
+        let alertController = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        self.viewModel?.updateShouldFetch(to: false)
+        DispatchQueue.main.async {
+            self.present(alertController, animated: true) { [weak self] in
+                guard let self else { return }
+                self.viewModel?.updateShouldFetch(to: true)
+            }
+        }
     }
 }
 
@@ -89,7 +100,6 @@ extension ListViewController: UICollectionViewDelegate {
             }
         }
     }
-    
 }
 
 // MARK: - UICollectionViewDataSource

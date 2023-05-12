@@ -9,16 +9,19 @@ import UIKit
 
 protocol ListViewModelProtocol {
     var didFetchRequest: (() -> Void)? { get set }
+    var showAlert: ((String) -> Void)? { get set }
+
     func getSpeciesList() -> [Species]
     func getCurrentSpecies(at index: Int) -> Species
     func fetchSpecies()
     func fetchImage(at index: Int, completion: @escaping (UIImage?) -> Void)
-
+    func updateShouldFetch(to bool: Bool)
 }
 
 class ListViewModel: ListViewModelProtocol {
     var didFetchRequest: (() -> Void)?
-    
+    var showAlert: ((String) -> Void)?
+
     private let requestHandler: RequestHandling
     private let imageHandler: ImageHandling
 
@@ -41,21 +44,21 @@ class ListViewModel: ListViewModelProtocol {
     
     func fetchSpecies() {
         guard shouldFetch else { return }
-        do {
-            try requestHandler.request(route: .getSpeciesList(limit: limit, offset: offset)) { [weak self] (result: Result<SpeciesResponse, Error>) -> Void in
-                guard let self else { return }
-                switch result {
-                case .success(let response):
-                    self.species.append(contentsOf: response.results)
-                    self.updatePagination(count: response.count)
-                    self.didFetchRequest?()
-                    
-                case .failure:
-                    print("TODO handle network failures")
+        requestHandler.request(route: .getSpeciesList(limit: limit, offset: offset)) { [weak self] (result: Result<SpeciesResponse, Error>) -> Void in
+            guard let self else { return }
+            switch result {
+            case .success(let response):
+                self.species.append(contentsOf: response.results)
+                self.updatePagination(count: response.count)
+                self.didFetchRequest?()
+                
+            case .failure(let error):
+                if let requestError = error as? RequestError {
+                    self.showAlert?(requestError.asMessage())
+                } else {
+                    self.showAlert?(error.localizedDescription)
                 }
             }
-        } catch {
-            print("TODO handle request handling failures failures")
         }
     }
     
@@ -66,6 +69,10 @@ class ListViewModel: ListViewModelProtocol {
         }
     }
     
+    func updateShouldFetch(to bool: Bool) {
+        shouldFetch = bool
+    }
+    
     func fetchImage(at index: Int, completion: @escaping (UIImage?) -> Void) {
         let id = index + 1
         
@@ -74,8 +81,10 @@ class ListViewModel: ListViewModelProtocol {
             case .success(let image):
                 completion(image)
             case .failure(_):
-                let placeholder = UIImage(named: "Image")
-                completion(placeholder)
+                DispatchQueue.main.async {
+                    let placeholder = UIImage(named: "Image")
+                    completion(placeholder)
+                }
             }
         }
     }

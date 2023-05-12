@@ -1,9 +1,5 @@
 import Foundation
 
-/// Enum that encodes the endpoints of the poke-api, required for the assignment. Can be fed into the RequestHandler.
-///
-/// It makes sure you don't have to worry too much about writing down the requests, and instead focus on the request manager.
-/// In the RequestManager, simply use `APIRoute.asRequest()` to get the URLRequest to perform.
 enum APIRoute {
     case getSpeciesList(limit: Int, offset: Int)
     case getSpecies(URL)
