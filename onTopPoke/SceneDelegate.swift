@@ -7,7 +7,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
         let window = UIWindow(windowScene: windowScene)
-        let navigationController = UINavigationController(rootViewController: ListViewController())
+        
+        let requestHandler: RequestHandling = RequestHandler()
+        let imageHandler: ImageHandling = ImageHandler()
+        let viewModel: ListViewModelProtocol = ListViewModel(requestHandler: requestHandler, imageHandler: imageHandler)
+        let navigationController = UINavigationController(rootViewController: ListViewController(viewModel: viewModel))
+        
         navigationController.navigationBar.prefersLargeTitles = true
         window.rootViewController = navigationController
         self.window = window
